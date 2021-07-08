@@ -73,6 +73,8 @@ void freeGen() {
 
 
 DEV int bernoulli(RAND_STATE_DECLARE floating_t p) {
+    // The probability needs to be between 0 and 1.
+    assert(0.0 <= p <= 1.0);
     return SAMPLE(uniform, 0, 1) < p ? 1 : 0;
 }
 

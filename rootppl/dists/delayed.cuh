@@ -1,4 +1,22 @@
 /**
+ * Beta distribution type
+ *
+ * @param alpha first shape.
+ * @param beta second shape.
+ */
+struct beta_t {
+  floating_t alpha;
+  floating_t beta;
+  
+  DEV beta_t(){}; 
+  DEV beta_t(floating_t alpha_, floating_t beta_) {
+    alpha = alpha_;
+    beta = beta_;
+  }
+};
+
+
+/**
  * Gamma Type
  *
  * @param k shape.
@@ -44,6 +62,25 @@ struct normalInverseGamma_t {
   }
 };
 
+
+/**
+ * Returns a sample from the Bernoulli distribution with a Beta prior (BetaBernoulli).
+ * 
+ * @param p beta_t distribution of the success probability.
+ * @return 1 with probability sampled from p, 0 otherwise.
+ */
+DEV floating_t betaBernoulli(RAND_STATE_DECLARE beta_t& p);
+
+
+/**
+ * Score of betaBernoulli
+ * 
+ * @param p beta_t distribution of the success probability.
+ * @param x variate.
+ *
+ * @retun log-probability.
+ */
+HOST DEV floating_t betaBernoulliScore(beta_t& p, int x);
 
 
 /**

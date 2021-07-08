@@ -15,6 +15,26 @@ renormalize_weights = function(test_file, dir = "test-data//", numparts) {
               col.names = FALSE)
 } 
 
+
+renormalize_log_weights_stable = function(test_file, dir = "test-data//", subsample_size = 5) {
+  logz = as.numeric(strsplit(sub("\\]", "", sub("\\[", "", readLines(paste0(dir, test_file, ".logz")))), ",")[[1]])
+  
+  test = read.csv(paste0(dir, test_file, ".csv"), header = FALSE)
+  
+  test$logz = unlist(lapply(logz, function(l) {rep(l, subsample_size)}))
+
+                                        #  test[[2]] = test[[2]] * exp(test$logz)
+                                        #  test[[2]] = test[[2]] / sum(test[[2]])
+  
+  logweightlogz = test[[2]] + test$logz
+  unnormalized_weight = exp(logweightlogz - max(logweightlogz))
+  test[[2]] = unnormalized_weight/sum(unnormalized_weight)
+  
+  write.table(test, paste0(dir, test_file, ".csv"), 
+                           sep = ",", quote = FALSE, row.names = FALSE,
+              col.names = FALSE)
+}
+
 do_test = function(left, right, size = 35, dir = "test-data//") {
   leftf = read.csv(paste0(dir, left, ".csv"))
   rightf = read.csv(paste0(dir, right, ".csv"))
@@ -73,3 +93,7 @@ renormalize_weights(test_file = "testLogAlphaSigmaSquared", numparts = args[[1]]
 do_test(left= "testLogAlphaSigmaSquared", right = "testLogAlphaSigmaSquaredDelayed", size = 1000)
 
 do_test(left= "testWaitingTimeMultipass", right = "testWaitingTimeDelayedMultipass", size = 1000)
+
+renormalize_log_weights_stable(test_file = "testBetaBernoulli", subsample_size = 100)
+renormalize_log_weights_stable(test_file = "testBernoulli", subsample_size = 100)
+do_test(left= "testBernoulli", right = "testBetaBernoulli")

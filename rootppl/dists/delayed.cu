@@ -16,7 +16,35 @@
 #include "scores.cuh"
 #include "macros/macros.cuh"
 
-#include "delayed.cuh"
+#include "dists/delayed.cuh"
+
+DEV floating_t betaBernoulli(RAND_STATE_DECLARE beta_t& p) {
+  // The shapes of the beta distribution need to be non-negative
+  assert(0.0 < p.alpha); 
+  assert(0.0 < p.beta);
+
+  //floating_t eps = SAMPLE(beta, p.alpha, p.beta);
+  floating_t prob = p.alpha/(p.alpha + p.beta);
+  int x = SAMPLE(bernoulli, prob);
+  
+  // Updates
+  p.alpha = p.alpha + x;
+  p.beta = p.beta + 1.0 - x;
+
+  //printf("updated alpha = %f, updated beta = %f, p = %f\n", p.alpha, p.beta, p.alpha/(p.alpha + p.beta));
+  return x;
+}
+
+
+HOST DEV floating_t betaBernoulliScore(beta_t& p, int x) {
+  floating_t s0 = log(p.beta);
+  if (x) {
+    s0 = log(p.alpha);
+  }
+  
+  return s0 - log(p.alpha + p.beta);
+}
+
 
 DEV floating_t sample_GammaExponential(RAND_STATE_DECLARE gamma_t& rate, floating_t f) {
   floating_t t = SAMPLE(lomax, 1/(f*rate.theta), rate.k);
@@ -26,6 +54,7 @@ DEV floating_t sample_GammaExponential(RAND_STATE_DECLARE gamma_t& rate, floatin
   rate.theta = rate.theta/(1 + t*f*rate.theta);
   return t;
 }
+
 
 
 DEV floating_t score_GammaExponential( floating_t x, gamma_t& rate,  floating_t f) {

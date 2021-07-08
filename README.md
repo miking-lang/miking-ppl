@@ -1,13 +1,8 @@
-# miking-ppl
-
 # CorePPL
-
 To be written...
 
-
 # RootPPL
-
-RootPPL can be seen as an intermediate language for representing probabilistic models and comes with a framework that performs inference on the GPU in these models. These models are currently hardcoded, see examples in the folder rootppl/models. The idea is that high-level Miking probabilistic programming languages should be compiled to this intermediate language. 
+RootPPL can be seen as an intermediate language for representing probabilistic models and comes with a framework that performs inference on the GPU in these models. These models are currently hard-coded, see examples in the folder rootppl/models. The idea is that high-level Miking probabilistic programming languages should be compiled to this intermediate language. 
 
 ## Getting Started
 The instructions below are tested on Ubuntu 18.04 but should work for other Linux distributions, Windows, and Mac. 
@@ -30,6 +25,9 @@ make install
 This will install rootppl to `$HOME/.local/bin` with resources copied to `$HOME/.local/lib/rootppl`. Some systems, e.g. Mac OS, will require manually adding `$HOME/.local/bin` to `$PATH`. 
 
 ### Build
+Note: before building and after installation, especially if you are re-installing,
+execute a `rootppl clean`, first.
+
 To compile a model and build an executable:
 ```
 rootppl path/to/model.cu
@@ -63,11 +61,22 @@ This should generate an executable named `program` (add `-o <exec_name>` to name
 An example output of this:
 ```
 ./program 1000
-Num particles close to target: 96.5%, MinX: 63.1558, MaxX: 84.4023
-log normalization constant = -119.270143
+-119.422143
+Num particles close to target: 98.9%, MinX: 56.2349, MaxX: 91.1572
 ```
 First is the command that is executed, it executes the executable `program` with program argument `1000`.
-The second row comes from a print statement within the model. Lastly, the log normalization constant approximated by the inference is printed. 
+The second row is the normalizing constant. The last row is a a print statement within the model. 
+
+You can supply a second argument to `program`, which is the number of sweeps:
+```
+./program 1000 3
+-115.482724
+Num particles close to target: 89.7%, MinX: 51.5005, MaxX: 88.2039
+-115.472101
+Num particles close to target: 90.5%, MinX: 53.0577, MaxX: 90.0298
+-115.496258
+Num particles close to target: 88.7%, MinX: 48.1773, MaxX: 89.0957
+```
 
 ### Creating a simple model
 Models are divided into fragments to enable pausing the execution within models. 
@@ -256,26 +265,14 @@ These models contain a number of new things, e.g.:
 - Global data used by the model
 - Resampling throughout the traversal of the observed tree
 
-#### Constant Rate Birth Death
-In [phylogenetics/crbd](rootppl/models/phylogenetics/crbd), the Constant Rate Birth Death models can be found. 
-The most interesting file here is [crbd_webppl.cu](rootppl/models/phylogenetics/crbd/crbd_webppl.cu) as it is a correct model
+#### Constant-rate birth-death
+In [phylogenetics/crbd](rootppl/models/phylogenetics/crbd), the constant-rate birth-death models can be found. 
+The most interesting file here is [crbd.cu](rootppl/models/phylogenetics/crbd/crbd.cu) as it is a correct model
 used by evolutionary biologists. This model uses a pre-processed DFS traversal path over the observed tree, rather than using a call stack. 
 
-Another interesting model here is [condbd.cu](rootppl/models/phylogenetics/crbd/condbd.cu), 
-which is not a correct CRBD model, but demonstrates how a stack can be used to traverse trees without any pre-processing of the tree.
-This is similar to the WebPPL models that traverse the tree using the implicit call stack.  
-
-#### BAMM
-In [phylogenetics/bamm](rootppl/models/phylogenetics/bamm), the Bayesian Analysis of Macroevolutionary Mixtures (BAMM) model can be found.
-This is another correct model used by evolutionary biologists, with significantly increased complexity compared to the CRBD model. 
-BAMM also uses the same pre-processed traversal path as the CRBD model. However, BAMM requires a stack to keep track of the
-parameters that is modified throughout the traversal of the tree. 
-
-#### ClaDS2
-In [phylogenetics/clads2](rootppl/models/phylogenetics/clads2), the Cladogenetic Diversification rate Shift 2 (ClaDS2) model can be found.
-This is a correct model used by evolutionary biologists as well. This is similar to BAMM in that is uses the pre-processed traversal
-and a stack to keep track of parameters. 
-
+#### Further phylogenetic models
+Further phylogenetic models are found in the package
+[`phyrppl`](https://github.com/vsenderov/phyrppl).
 
 ### The RootPPL Architecture
 
@@ -299,3 +296,6 @@ TODO, stuff not yet demonstrated explicitly in README:
 - Multiple BBLOCK models
 - Global data accessible by bblocks on GPU
 - Program States containing more than a primitive datatype, e.g. structs. 
+
+### RootPPL ChangeLog
+7/7/2021: added BetaBernoulli distribution
